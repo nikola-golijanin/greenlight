@@ -2,47 +2,54 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/nikola-golijanin/greenlight/internal/data"
 )
 
 func TestGetMovieById(t *testing.T) {
-	tests := []struct {
-		name     string
-		request  *http.Request
-		response *httptest.ResponseRecorder
-		want     string
-	}{
-		{
-			name:     "returns movie by id",
-			request:  WithUrlParam(newRequest(t, http.MethodGet, "/v1/movies/1"), "id", "1"),
-			response: httptest.NewRecorder(),
-			want:     "show the details of movie 1\n",
-		},
-		{
-			name:     "fails to parse id",
-			request:  WithUrlParam(newRequest(t, http.MethodGet, "/v1/movies/nikola"), "id", "nikola"),
-			response: httptest.NewRecorder(),
-			want:     "404 page not found\n",
-		},
-	}
+	t.Run("returns movie by id", func(t *testing.T) {
+		request := WithUrlParam(newRequest(t, http.MethodGet, "/v1/movies/1"), "id", "1")
+		response := httptest.NewRecorder()
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			app := &application{logger: slog.Default()}
-			app.getMovieById(test.response, test.request)
+		app := &application{logger: slog.Default()}
+		app.getMovieById(response, request)
 
-			got := test.response.Body.String()
+		var gotMovie data.Movie
+		json.Unmarshal(response.Body.Bytes(), &gotMovie)
 
-			if got != test.want {
-				t.Errorf("got %q, want %q", got, test.want)
-			}
-		})
-	}
+		wantedMovie := data.Movie{
+			ID:        1,
+			CreatedAt: time.Now(),
+			Title:     "Movie",
+			Runtime:   150,
+			Genres:    []string{"drama", "romance"},
+			Version:   1,
+		}
+
+		if gotMovie.Title != wantedMovie.Title {
+			t.Errorf("got %q, want %q", gotMovie.Title, wantedMovie.Title)
+		}
+	})
+	t.Run("fails to parse id", func(t *testing.T) {
+		request := WithUrlParam(newRequest(t, http.MethodGet, "/v1/movies/nikola"), "id", "nikola")
+		response := httptest.NewRecorder()
+
+		app := &application{logger: slog.Default()}
+		app.getMovieById(response, request)
+
+		got := response.Body.String()
+		want := "404 page not found\n"
+		if got != want {
+			t.Errorf("got %q, want %q", got, want)
+		}
+	})
 }
 
 func TestCreateMovie(t *testing.T) {
