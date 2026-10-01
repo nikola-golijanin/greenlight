@@ -16,11 +16,9 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 
 func (app *application) getMovieById(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
-
 	id, err := strconv.Atoi(idParam)
 	if err != nil || id < 1 {
-		app.logger.Error("Id in unsupported format", "idParam", idParam)
-		http.NotFound(w, r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
@@ -35,8 +33,6 @@ func (app *application) getMovieById(w http.ResponseWriter, r *http.Request) {
 
 	err = app.writeJSON(w, http.StatusOK, movie, nil)
 	if err != nil {
-		app.logger.Error(err.Error())
-		http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
-		return
+		app.serverErrorResponse(w, r, err)
 	}
 }
