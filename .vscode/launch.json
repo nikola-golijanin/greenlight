@@ -11,7 +11,7 @@
             "mode": "auto",
             "program": "./cmd/api/",
             "args": [
-                "--port","8080",
+                "--port","4000",
                 "--env","development"
             ]
         }

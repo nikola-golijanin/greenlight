@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -9,23 +8,38 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/nikola-golijanin/greenlight/internal/data"
+	"github.com/nikola-golijanin/greenlight/internal/validator"
 )
 
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Title   string   `json:"title"`
-		Year    int      `json:"year"`
-		Runtime int      `json:"runtime"`
-		Genres  []string `json:"genres"`
+		Title   string       `json:"title"`
+		Year    int          `json:"year"`
+		Runtime data.Runtime `json:"runtime"`
+		Genres  []string     `json:"genres"`
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err := app.readJSON(w, r, &input)
 	if err != nil {
-		app.errorResponse(w,r,http.StatusBadRequest,err.Error())
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
-	fmt.Fprintf(w, "%v\n",input)
+	movie := &data.Movie{
+		Title:   input.Title,
+		Year:    input.Year,
+		Runtime: input.Runtime,
+		Genres:  input.Genres,
+	}
+
+	v := validator.NewValidator()
+
+	if data.ValidateMovie(v, movie); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	fmt.Fprintf(w, "%v\n", input)
 }
 
 func (app *application) getMovieById(w http.ResponseWriter, r *http.Request) {

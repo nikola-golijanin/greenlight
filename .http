@@ -1,0 +1,40 @@
+### Create movie 
+POST http://localhost:4000/v1/movies
+Content-Type: application/json
+
+{"title":"Moana","year":2016,"runtime":"107 mins","genres":["animation","adventure"]}
+
+### Create movie - invalid request
+POST http://localhost:4000/v1/movies
+Content-Type: application/json
+
+{"title":"","year": 2016,"runtime":"107 mins","genres":["animation","adventure"]}
+
+
+
+### Get movie 
+GET http://localhost:4000/v1/movies/1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### healthcheck
+GET http://localhost:4000/v1/healthcheck
