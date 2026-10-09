@@ -11,8 +11,11 @@
             "mode": "auto",
             "program": "./cmd/api/",
             "args": [
-                "--port","4000",
-                "--env","development"
+                "--port", "4000",
+                "--env", "development",
+                "--db-max-open-conns", "50",
+                "--db-max-idle-conns", "50",
+                "--db-max-idle-time", "2h30m"
             ]
         }
     ]
