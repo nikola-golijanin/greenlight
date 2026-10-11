@@ -1,4 +1,4 @@
-package data
+package movies
 
 import (
 	"encoding/json"
@@ -29,7 +29,6 @@ func TestRuntimeMarshalJSON(t *testing.T) {
 		})
 	}
 }
-
 
 func TestRuntimeUnmarshalJSON(t *testing.T) {
 	tests := []struct {

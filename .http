@@ -10,31 +10,18 @@ Content-Type: application/json
 
 {"title":"","year": 2016,"runtime":"107 mins","genres":["animation","adventure"]}
 
-
-
 ### Get movie 
-GET http://localhost:4000/v1/movies/1
+GET http://localhost:4000/v1/movies/61
 
 
+### Update movie
+PUT http://localhost:4000/v1/movies/61
+Content-Type: application/json
 
+{"title":"Nikola","year": 2000,"runtime":"107 mins","genres":["animation","adventure"]}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+### Delete movie
+DELETE http://localhost:4000/v1/movies/24
 
 ### healthcheck
 GET http://localhost:4000/v1/healthcheck

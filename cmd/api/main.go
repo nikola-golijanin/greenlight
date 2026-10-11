@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"log/slog"
@@ -10,7 +9,9 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgxpool"
+	repo "github.com/nikola-golijanin/greenlight/internal/data/sqlc"
+	"github.com/nikola-golijanin/greenlight/internal/movies"
 )
 
 const version = "1.0.0"
@@ -29,6 +30,7 @@ type config struct {
 type application struct {
 	config config
 	logger *slog.Logger
+	movies movies.MovieService
 }
 
 func main() {
@@ -54,7 +56,11 @@ func main() {
 	defer db.Close()
 	logger.Info("database connection pool established")
 
-	app := &application{config: cfg, logger: logger}
+	app := &application{
+		config: cfg,
+		logger: logger,
+		movies: movies.NewMovieService(repo.New(db)),
+	}
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port),
@@ -71,24 +77,19 @@ func main() {
 	os.Exit(1)
 }
 
-func openDB(cfg config) (*sql.DB, error) {
-	db, err := sql.Open("postgres", cfg.db.dsn)
-	if err != nil {
-		return nil, err
-	}
-
-	db.SetMaxOpenConns(cfg.db.maxOpenConns)
-	db.SetMaxIdleConns(cfg.db.maxIdleConns)
-	db.SetConnMaxLifetime(cfg.db.maxIdleTime)
-	
+func openDB(cfg config) (*pgxpool.Pool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err = db.PingContext(ctx)
+	dbpool, err := pgxpool.New(ctx, cfg.db.dsn)
 	if err != nil {
-		db.Close()
+		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
 		return nil, err
 	}
 
-	return db, nil
+	dbCfg, err := pgxpool.ParseConfig(cfg.db.dsn)
+	dbCfg.MaxConns = int32(cfg.db.maxOpenConns)
+	dbCfg.MaxConnIdleTime = cfg.db.maxIdleTime
+
+	return dbpool, nil
 }

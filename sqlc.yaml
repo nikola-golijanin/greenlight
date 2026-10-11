@@ -1,0 +1,18 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries:
+      - "./internal/data/sqlc/queries.sql"
+    schema: "./internal/data/migrations"
+    gen:
+      go:
+        package: "repo"
+        out: "./internal/data/sqlc"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_interface: true
+        overrides:
+          - db_type: "pg_catalog.int4"
+            go_type: "int"
+          - db_type: "pg_catalog.int8"
+            go_type: "int"

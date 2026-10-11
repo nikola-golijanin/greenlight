@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/nikola-golijanin/greenlight/internal/data"
+	"github.com/nikola-golijanin/greenlight/internal/movies"
 )
 
 func TestGetMovieById(t *testing.T) {
@@ -23,12 +23,12 @@ func TestGetMovieById(t *testing.T) {
 		response := httptest.NewRecorder()
 
 		app := &application{logger: slog.Default()}
-		app.getMovieById(response, request)
+		app.getMovieByIdHandler(response, request)
 
-		var gotMovie data.Movie
+		var gotMovie movies.Movie
 		json.Unmarshal(response.Body.Bytes(), &gotMovie)
 
-		wantedMovie := data.Movie{
+		wantedMovie := movies.Movie{
 			ID:        1,
 			CreatedAt: time.Now(),
 			Title:     "Movie",
@@ -46,7 +46,7 @@ func TestGetMovieById(t *testing.T) {
 		response := httptest.NewRecorder()
 
 		app := &application{logger: slog.Default()}
-		app.getMovieById(response, request)
+		app.getMovieByIdHandler(response, request)
 
 		got := response.Body.String()
 		want := "{\n\t\"error\": \"the requested resource could not be found\"\n}\n"
@@ -59,10 +59,10 @@ func TestGetMovieById(t *testing.T) {
 func TestCreateMovie(t *testing.T) {
 	t.Run("Create movie", func(t *testing.T) {
 		input := struct {
-			Title   string       `json:"title"`
-			Year    int          `json:"year"`
-			Runtime data.Runtime `json:"runtime"`
-			Genres  []string     `json:"genres"`
+			Title   string         `json:"title"`
+			Year    int            `json:"year"`
+			Runtime movies.Runtime `json:"runtime"`
+			Genres  []string       `json:"genres"`
 		}{
 			Title:   "Moana",
 			Year:    2016,
@@ -132,7 +132,7 @@ func TestCreateMovieValidation(t *testing.T) {
 		},
 		{
 			name:     "negative runtime",
-			modify:   func(b map[string]any) { b["runtime"] = data.Runtime(-10) },
+			modify:   func(b map[string]any) { b["runtime"] = movies.Runtime(-10) },
 			wantErrs: map[string]string{"runtime": "must be a positive integer"},
 		},
 		{
@@ -201,7 +201,7 @@ func validMovieBody() map[string]any {
 	return map[string]any{
 		"title":   "Moana",
 		"year":    2016,
-		"runtime": data.Runtime(107),
+		"runtime": movies.Runtime(107),
 		"genres":  []string{"animation", "adventure"},
 	}
 }
