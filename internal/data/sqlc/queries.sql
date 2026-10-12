@@ -17,3 +17,8 @@ RETURNING version;
 -- name: DeleteMovie :exec
 DELETE from movies
 WHERE id = $1;
+
+-- name: GetAllMovies :many
+SELECT id, created_at, title, year, runtime, genres, version
+FROM movies
+ORDER BY id;

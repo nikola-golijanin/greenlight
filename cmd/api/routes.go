@@ -17,6 +17,7 @@ func (app *application) routes() http.Handler {
 	r.MethodNotAllowed(app.methodNotAllowedResponse)
 
 	r.Get("/v1/healthcheck", app.healthcheckHandler)
+	r.Get("/v1/movies", app.getMoviesHandler)
 	r.Post("/v1/movies", app.createMovieHandler)
 	r.Get("/v1/movies/{id}", app.getMovieByIdHandler)
 	r.Patch("/v1/movies/{id}", app.updateMovieHandler)

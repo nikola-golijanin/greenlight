@@ -8,9 +8,36 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
+	"github.com/nikola-golijanin/greenlight/internal/data"
 	"github.com/nikola-golijanin/greenlight/internal/movies"
 	"github.com/nikola-golijanin/greenlight/internal/validator"
 )
+
+func (app *application) getMoviesHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Title  string
+		Genres []string
+		data.Filters
+	}
+
+	qs := r.URL.Query()
+	v := validator.NewValidator()
+
+	input.Title = app.readString(qs, "title", "")
+	input.Genres = app.readCommaSeparated(qs, "genres", []string{})
+	input.Page = app.readInt(qs, "page", 1, v)
+	input.PageSize = app.readInt(qs, "page_size", 20, v)
+	input.Sort = app.readString(qs, "sort", "id")
+	input.Filters.SortSafelist = []string{"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime"}
+
+	if data.ValidateFilters(v, input.Filters); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	mvs, _ := app.movies.GetAll(input.Title, input.Genres, input.Filters)
+	app.writeJSON(w, http.StatusOK, mvs, nil)
+}
 
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
@@ -170,5 +197,3 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 
 	w.WriteHeader(http.StatusNoContent)
 }
-
-

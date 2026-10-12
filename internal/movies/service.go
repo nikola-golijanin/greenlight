@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/nikola-golijanin/greenlight/internal/data"
 	repo "github.com/nikola-golijanin/greenlight/internal/data/sqlc"
 )
 
@@ -18,6 +19,30 @@ func NewMovieService(repo repo.Querier) MovieService {
 	return MovieService{
 		repo: repo,
 	}
+}
+
+func (m MovieService) GetAll(title string, genres []string, filters data.Filters) ([]*Movie, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	movies, err := m.repo.GetAllMovies(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	mvs := make([]*Movie, len(movies))
+	for i, m := range movies {
+		mvs[i] = &Movie{
+			ID:        m.ID,
+			CreatedAt: m.CreatedAt.Time,
+			Title:     m.Title,
+			Year:      m.Year,
+			Runtime:   Runtime(m.Runtime),
+			Genres:    m.Genres,
+			Version:   m.Version,
+		}
+	}
+	return mvs, nil
 }
 
 func (m MovieService) Insert(movie *Movie) error {

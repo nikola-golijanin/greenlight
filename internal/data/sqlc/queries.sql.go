@@ -21,6 +21,40 @@ func (q *Queries) DeleteMovie(ctx context.Context, id int) error {
 	return err
 }
 
+const getAllMovies = `-- name: GetAllMovies :many
+SELECT id, created_at, title, year, runtime, genres, version
+FROM movies
+ORDER BY id
+`
+
+func (q *Queries) GetAllMovies(ctx context.Context) ([]Movie, error) {
+	rows, err := q.db.Query(ctx, getAllMovies)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Movie
+	for rows.Next() {
+		var i Movie
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.Title,
+			&i.Year,
+			&i.Runtime,
+			&i.Genres,
+			&i.Version,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getMovieById = `-- name: GetMovieById :one
 SELECT id, created_at, title, year, runtime, genres, version
 FROM movies
