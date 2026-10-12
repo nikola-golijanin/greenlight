@@ -22,7 +22,6 @@ type config struct {
 	db   struct {
 		dsn          string
 		maxOpenConns int
-		maxIdleConns int
 		maxIdleTime  time.Duration
 	}
 }
@@ -37,10 +36,9 @@ func main() {
 	var cfg config
 
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
-	flag.StringVar(&cfg.env, "env", "development2", "Environment (development|production)")
+	flag.StringVar(&cfg.env, "env", "development", "Environment (development|production)")
 	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://postgres:a-secure-password@localhost/greenlight?sslmode=disable", "PostgreSQL DSN")
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
-	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
 
 	flag.Parse()
@@ -81,15 +79,20 @@ func openDB(cfg config) (*pgxpool.Pool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	dbpool, err := pgxpool.New(ctx, cfg.db.dsn)
+	dbCfg, err := pgxpool.ParseConfig(cfg.db.dsn)
+	dbCfg.MaxConns = int32(cfg.db.maxOpenConns)
+	dbCfg.MaxConnIdleTime = cfg.db.maxIdleTime
+
+	dbpool, err := pgxpool.NewWithConfig(ctx, dbCfg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to create connection pool: %v\n", err)
 		return nil, err
 	}
 
-	dbCfg, err := pgxpool.ParseConfig(cfg.db.dsn)
-	dbCfg.MaxConns = int32(cfg.db.maxOpenConns)
-	dbCfg.MaxConnIdleTime = cfg.db.maxIdleTime
+	if err := dbpool.Ping(ctx); err != nil {
+		dbpool.Close()
+		return nil, fmt.Errorf("ping db: %w", err)
+	}
 
 	return dbpool, nil
 }

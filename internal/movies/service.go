@@ -3,6 +3,7 @@ package movies
 import (
 	"context"
 	"errors"
+	"time"
 
 	repo "github.com/nikola-golijanin/greenlight/internal/data/sqlc"
 )
@@ -20,7 +21,10 @@ func NewMovieService(repo repo.Querier) MovieService {
 }
 
 func (m MovieService) Insert(movie *Movie) error {
-	mv, err := m.repo.InsertMovie(context.Background(), repo.InsertMovieParams{
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	mv, err := m.repo.InsertMovie(ctx, repo.InsertMovieParams{
 		Title:   movie.Title,
 		Year:    movie.Year,
 		Runtime: int(movie.Runtime),
@@ -37,7 +41,10 @@ func (m MovieService) Insert(movie *Movie) error {
 }
 
 func (m MovieService) GetById(id int) (*Movie, error) {
-	mv, err := m.repo.GetMovieById(context.Background(), id)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	mv, err := m.repo.GetMovieById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +63,10 @@ func (m MovieService) GetById(id int) (*Movie, error) {
 }
 
 func (m MovieService) Update(movie *Movie) error {
-	_, err := m.repo.UpdateMovie(context.Background(), repo.UpdateMovieParams{
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.repo.UpdateMovie(ctx, repo.UpdateMovieParams{
 		ID:      movie.ID,
 		Title:   movie.Title,
 		Year:    movie.Year,
@@ -69,5 +79,8 @@ func (m MovieService) Update(movie *Movie) error {
 }
 
 func (m MovieService) Delete(id int) error {
-	return m.repo.DeleteMovie(context.Background(), id)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	return m.repo.DeleteMovie(ctx, id)
 }
