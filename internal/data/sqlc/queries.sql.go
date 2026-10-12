@@ -76,7 +76,7 @@ func (q *Queries) InsertMovie(ctx context.Context, arg InsertMovieParams) (Inser
 const updateMovie = `-- name: UpdateMovie :one
 UPDATE movies
 SET title = $1, year = $2, runtime = $3, genres = $4, version = version + 1
-WHERE id = $5
+WHERE id = $5 AND version = $6
 RETURNING version
 `
 
@@ -86,6 +86,7 @@ type UpdateMovieParams struct {
 	Runtime int      `json:"runtime"`
 	Genres  []string `json:"genres"`
 	ID      int      `json:"id"`
+	Version int      `json:"version"`
 }
 
 func (q *Queries) UpdateMovie(ctx context.Context, arg UpdateMovieParams) (int, error) {
@@ -95,6 +96,7 @@ func (q *Queries) UpdateMovie(ctx context.Context, arg UpdateMovieParams) (int, 
 		arg.Runtime,
 		arg.Genres,
 		arg.ID,
+		arg.Version,
 	)
 	var version int
 	err := row.Scan(&version)

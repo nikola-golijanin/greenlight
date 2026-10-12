@@ -62,6 +62,7 @@ func (m MovieService) Update(movie *Movie) error {
 		Year:    movie.Year,
 		Runtime: int(movie.Runtime),
 		Genres:  movie.Genres,
+		Version: movie.Version,
 	})
 
 	return err

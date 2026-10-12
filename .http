@@ -15,10 +15,17 @@ GET http://localhost:4000/v1/movies/61
 
 
 ### Update movie
-PUT http://localhost:4000/v1/movies/61
+PATCH http://localhost:4000/v1/movies/61
 Content-Type: application/json
 
-{"title":"Nikola","year": 2000,"runtime":"107 mins","genres":["animation","adventure"]}
+{"title":"Movie1","year": 2000,"runtime":"107 mins","genres":["animation","adventure"]}
+
+### Update movie partially
+PATCH http://localhost:4000/v1/movies/61
+Content-Type: application/json
+
+{"title":"Movie2","year": 2005}
+
 
 ### Delete movie
 DELETE http://localhost:4000/v1/movies/24
