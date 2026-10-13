@@ -1,0 +1,55 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build api",
+			"type": "shell",
+			"command": "go",
+			"args": [
+				"build",
+				"-o",
+				"${workspaceFolder}/bin/api.exe",
+				"./cmd/api"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"problemMatcher": [
+				"$go"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"presentation": {
+				"reveal": "silent",
+				"clear": true
+			}
+		},
+		{
+			"label": "run api",
+			"type": "shell",
+			"command": "${workspaceFolder}/bin/api.exe",
+			"args": [
+				"--port=4000",
+				"--env=development",
+				"--db-max-open-conns=50",
+				"--db-max-idle-time=2h30m",
+				"--limiter-requests=2",
+				"--limiter-window=5s",
+				"--limiter-enabled=true"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"dependsOn": "build api",
+			"isBackground": true,
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": true
+			}
+		}
+	]
+}

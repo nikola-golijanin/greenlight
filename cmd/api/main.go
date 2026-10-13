@@ -24,6 +24,11 @@ type config struct {
 		maxOpenConns int
 		maxIdleTime  time.Duration
 	}
+	limiter struct {
+		requests int
+		window   time.Duration
+		enabled  bool
+	}
 }
 
 type application struct {
@@ -37,9 +42,14 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|production)")
+
 	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://postgres:a-secure-password@localhost/greenlight?sslmode=disable", "PostgreSQL DSN")
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.DurationVar(&cfg.db.maxIdleTime, "db-max-idle-time", 15*time.Minute, "PostgreSQL max connection idle time")
+
+	flag.IntVar(&cfg.limiter.requests, "limiter-requests", 10, "Rate limiter max requests per window")
+	flag.DurationVar(&cfg.limiter.window, "limiter-window", 5*time.Second, "Rate limiter window length")
+	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
 
 	flag.Parse()
 
