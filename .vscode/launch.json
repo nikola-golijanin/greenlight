@@ -17,7 +17,7 @@
                 "--db-max-idle-time=2h30m",
                 "--limiter-requests=2",
                 "--limiter-window=5s",
-                "--limiter-enabled=true"
+                "--limiter-enabled=false"
             ],
             // "envFile": "${workspaceFolder}/.env"
         }
