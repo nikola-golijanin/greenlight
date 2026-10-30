@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/nikola-golijanin/greenlight/internal/data"
 	repo "github.com/nikola-golijanin/greenlight/internal/data/sqlc"
 )
@@ -71,7 +72,12 @@ func (m MovieService) GetById(id int) (*Movie, error) {
 
 	mv, err := m.repo.GetMovieById(ctx, id)
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
 	}
 
 	movie := &Movie{
@@ -100,12 +106,23 @@ func (m MovieService) Update(movie *Movie) error {
 		Version: movie.Version,
 	})
 
-	return err
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return ErrRecordNotFound
+	default:
+		return err
+	}
 }
 
 func (m MovieService) Delete(id int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	return m.repo.DeleteMovie(ctx, id)
+	err := m.repo.DeleteMovie(ctx, id)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return ErrRecordNotFound
+	default:
+		return err
+	}
 }

@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/jackc/pgx/v5"
 	"github.com/nikola-golijanin/greenlight/internal/data"
 	"github.com/nikola-golijanin/greenlight/internal/movies"
 	"github.com/nikola-golijanin/greenlight/internal/validator"
@@ -92,7 +91,7 @@ func (app *application) getMovieByIdHandler(w http.ResponseWriter, r *http.Reque
 
 	movie, err := app.movies.GetById(id)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, movies.ErrRecordNotFound) {
 			app.notFoundResponse(w, r)
 			return
 		}
@@ -116,7 +115,7 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 
 	movie, err := app.movies.GetById(id)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, movies.ErrRecordNotFound) {
 			app.notFoundResponse(w, r)
 			return
 		}
@@ -157,7 +156,7 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 	err = app.movies.Update(movie)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, movies.ErrRecordNotFound) {
 			app.notFoundResponse(w, r)
 			return
 		}
@@ -181,7 +180,7 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 
 	movie, err := app.movies.GetById(id)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, movies.ErrRecordNotFound) {
 			app.notFoundResponse(w, r)
 			return
 		}
