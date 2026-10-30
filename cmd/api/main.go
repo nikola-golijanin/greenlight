@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	repo "github.com/nikola-golijanin/greenlight/internal/data/sqlc"
 	"github.com/nikola-golijanin/greenlight/internal/movies"
+	"github.com/nikola-golijanin/greenlight/internal/users"
 )
 
 const version = "1.0.0"
@@ -34,6 +35,7 @@ type application struct {
 	config config
 	logger *slog.Logger
 	movies movies.MovieService
+	users  users.UserService
 }
 
 func main() {
@@ -67,6 +69,7 @@ func main() {
 		config: cfg,
 		logger: logger,
 		movies: movies.NewMovieService(repo.New(db)),
+		users:  users.NewUserService(repo.New(db)),
 	}
 
 	err = app.serve()

@@ -76,6 +76,27 @@ func (q *Queries) GetMovieById(ctx context.Context, id int) (Movie, error) {
 	return i, err
 }
 
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, created_at, name, email, password_hash, activated, version
+FROM users
+WHERE email = $1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Activated,
+		&i.Version,
+	)
+	return i, err
+}
+
 const insertMovie = `-- name: InsertMovie :one
 INSERT INTO movies (title, year, runtime, genres)
 VALUES ($1, $2, $3, $4)
@@ -107,6 +128,37 @@ func (q *Queries) InsertMovie(ctx context.Context, arg InsertMovieParams) (Inser
 	return i, err
 }
 
+const insertUser = `-- name: InsertUser :one
+INSERT INTO users (name, email, password_hash, activated)
+VALUES ($1, $2, $3, $4)
+RETURNING id, created_at, version
+`
+
+type InsertUserParams struct {
+	Name         string `json:"name"`
+	Email        string `json:"email"`
+	PasswordHash []byte `json:"password_hash"`
+	Activated    bool   `json:"activated"`
+}
+
+type InsertUserRow struct {
+	ID        int                `json:"id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	Version   int                `json:"version"`
+}
+
+func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (InsertUserRow, error) {
+	row := q.db.QueryRow(ctx, insertUser,
+		arg.Name,
+		arg.Email,
+		arg.PasswordHash,
+		arg.Activated,
+	)
+	var i InsertUserRow
+	err := row.Scan(&i.ID, &i.CreatedAt, &i.Version)
+	return i, err
+}
+
 const updateMovie = `-- name: UpdateMovie :one
 UPDATE movies
 SET title = $1, year = $2, runtime = $3, genres = $4, version = version + 1
@@ -129,6 +181,36 @@ func (q *Queries) UpdateMovie(ctx context.Context, arg UpdateMovieParams) (int, 
 		arg.Year,
 		arg.Runtime,
 		arg.Genres,
+		arg.ID,
+		arg.Version,
+	)
+	var version int
+	err := row.Scan(&version)
+	return version, err
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users
+SET name = $1, email = $2, password_hash = $3, activated = $4, version = version + 1
+WHERE id = $5 AND version = $6
+RETURNING version
+`
+
+type UpdateUserParams struct {
+	Name         string `json:"name"`
+	Email        string `json:"email"`
+	PasswordHash []byte `json:"password_hash"`
+	Activated    bool   `json:"activated"`
+	ID           int    `json:"id"`
+	Version      int    `json:"version"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (int, error) {
+	row := q.db.QueryRow(ctx, updateUser,
+		arg.Name,
+		arg.Email,
+		arg.PasswordHash,
+		arg.Activated,
 		arg.ID,
 		arg.Version,
 	)

@@ -12,8 +12,11 @@ type Querier interface {
 	DeleteMovie(ctx context.Context, id int) error
 	GetAllMovies(ctx context.Context) ([]Movie, error)
 	GetMovieById(ctx context.Context, id int) (Movie, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
 	InsertMovie(ctx context.Context, arg InsertMovieParams) (InsertMovieRow, error)
+	InsertUser(ctx context.Context, arg InsertUserParams) (InsertUserRow, error)
 	UpdateMovie(ctx context.Context, arg UpdateMovieParams) (int, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (int, error)
 }
 
 var _ Querier = (*Queries)(nil)

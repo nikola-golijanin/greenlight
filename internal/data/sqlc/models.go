@@ -17,3 +17,13 @@ type Movie struct {
 	Genres    []string           `json:"genres"`
 	Version   int                `json:"version"`
 }
+
+type User struct {
+	ID           int                `json:"id"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	Name         string             `json:"name"`
+	Email        string             `json:"email"`
+	PasswordHash []byte             `json:"password_hash"`
+	Activated    bool               `json:"activated"`
+	Version      int                `json:"version"`
+}

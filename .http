@@ -14,11 +14,11 @@ Content-Type: application/json
 {"title":"","year": 2016,"runtime":"107 mins","genres":["animation","adventure"]}
 
 ### Get movie 
-GET http://localhost:4000/v1/movies/61
+GET http://localhost:4000/v1/movies/111
 
 
 ### Update movie
-PATCH http://localhost:4000/v1/movies/61
+PATCH http://localhost:4000/v1/movies/111
 Content-Type: application/json
 
 {"title":"Movie1","year": 2000,"runtime":"107 mins","genres":["animation","adventure"]}
@@ -31,7 +31,17 @@ Content-Type: application/json
 
 
 ### Delete movie
-DELETE http://localhost:4000/v1/movies/24
+DELETE http://localhost:4000/v1/movies/241
 
 ### healthcheck
 GET http://localhost:4000/v1/healthcheck
+
+
+
+
+### Create user 
+POST http://localhost:4000/v1/users
+Content-Type: application/json
+
+{"name":"Nikola","email":"golijanin.nikola@outlook.com","password":"nikola.12345"}
+
