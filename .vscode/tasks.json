@@ -27,7 +27,7 @@
 			}
 		},
 		{
-			"label": "run api",
+			"label": "run api locally",
 			"type": "shell",
 			"command": "${workspaceFolder}/bin/api.exe",
 			"args": [
@@ -50,6 +50,32 @@
 				"panel": "dedicated",
 				"clear": true
 			}
+		},
+		{
+			"label": "run api homelab",
+			"type": "shell",
+			"command": "${workspaceFolder}/bin/api.exe",
+			"args": [
+				"--port=4000",
+				"--env=development",
+                "--db-dsn=postgres://postgres:postgres@192.168.1.60/greenlight?sslmode=disable",
+				"--db-max-open-conns=50",
+				"--db-max-idle-time=2h30m",
+				"--limiter-requests=2",
+				"--limiter-window=5s",
+				"--limiter-enabled=false"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"dependsOn": "build api",
+			"isBackground": true,
+			"problemMatcher": [],
+			"presentation": {
+				"reveal": "always",
+				"panel": "dedicated",
+				"clear": true
+			},
 		}
 	]
 }
