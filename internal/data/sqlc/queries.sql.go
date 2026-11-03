@@ -11,6 +11,21 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const deleteAllTokensForUser = `-- name: DeleteAllTokensForUser :exec
+DELETE FROM tokens
+WHERE scope = $1 AND user_id = $2
+`
+
+type DeleteAllTokensForUserParams struct {
+	Scope  string `json:"scope"`
+	UserID int    `json:"user_id"`
+}
+
+func (q *Queries) DeleteAllTokensForUser(ctx context.Context, arg DeleteAllTokensForUserParams) error {
+	_, err := q.db.Exec(ctx, deleteAllTokensForUser, arg.Scope, arg.UserID)
+	return err
+}
+
 const deleteMovie = `-- name: DeleteMovie :exec
 DELETE from movies
 WHERE id = $1
@@ -97,6 +112,37 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 	return i, err
 }
 
+const getUserForToken = `-- name: GetUserForToken :one
+SELECT users.id, users.created_at, users.name, users.email, users.password_hash, users.activated, users.version
+FROM users
+INNER JOIN tokens
+ON users.id = tokens.user_id
+WHERE tokens.hash = $1
+AND tokens.scope = $2
+AND tokens.expiry > $3
+`
+
+type GetUserForTokenParams struct {
+	Hash   []byte             `json:"hash"`
+	Scope  string             `json:"scope"`
+	Expiry pgtype.Timestamptz `json:"expiry"`
+}
+
+func (q *Queries) GetUserForToken(ctx context.Context, arg GetUserForTokenParams) (User, error) {
+	row := q.db.QueryRow(ctx, getUserForToken, arg.Hash, arg.Scope, arg.Expiry)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.Name,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Activated,
+		&i.Version,
+	)
+	return i, err
+}
+
 const insertMovie = `-- name: InsertMovie :one
 INSERT INTO movies (title, year, runtime, genres)
 VALUES ($1, $2, $3, $4)
@@ -126,6 +172,28 @@ func (q *Queries) InsertMovie(ctx context.Context, arg InsertMovieParams) (Inser
 	var i InsertMovieRow
 	err := row.Scan(&i.ID, &i.CreatedAt, &i.Version)
 	return i, err
+}
+
+const insertToken = `-- name: InsertToken :exec
+INSERT INTO tokens (hash, user_id, expiry, scope)
+VALUES ($1, $2, $3, $4)
+`
+
+type InsertTokenParams struct {
+	Hash   []byte             `json:"hash"`
+	UserID int                `json:"user_id"`
+	Expiry pgtype.Timestamptz `json:"expiry"`
+	Scope  string             `json:"scope"`
+}
+
+func (q *Queries) InsertToken(ctx context.Context, arg InsertTokenParams) error {
+	_, err := q.db.Exec(ctx, insertToken,
+		arg.Hash,
+		arg.UserID,
+		arg.Expiry,
+		arg.Scope,
+	)
+	return err
 }
 
 const insertUser = `-- name: InsertUser :one

@@ -10,7 +10,10 @@ import (
 	repo "github.com/nikola-golijanin/greenlight/internal/data/sqlc"
 )
 
-var ErrRecordNotFound = errors.New("record not found")
+var (
+	ErrRecordNotFound = errors.New("record not found")
+	ErrEditConflict   = errors.New("edit conflict")
+)
 
 type MovieService struct {
 	repo repo.Querier
@@ -108,7 +111,7 @@ func (m MovieService) Update(movie *Movie) error {
 
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
-		return ErrRecordNotFound
+		return ErrEditConflict
 	default:
 		return err
 	}

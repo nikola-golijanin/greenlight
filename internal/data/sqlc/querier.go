@@ -9,11 +9,14 @@ import (
 )
 
 type Querier interface {
+	DeleteAllTokensForUser(ctx context.Context, arg DeleteAllTokensForUserParams) error
 	DeleteMovie(ctx context.Context, id int) error
 	GetAllMovies(ctx context.Context) ([]Movie, error)
 	GetMovieById(ctx context.Context, id int) (Movie, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
+	GetUserForToken(ctx context.Context, arg GetUserForTokenParams) (User, error)
 	InsertMovie(ctx context.Context, arg InsertMovieParams) (InsertMovieRow, error)
+	InsertToken(ctx context.Context, arg InsertTokenParams) error
 	InsertUser(ctx context.Context, arg InsertUserParams) (InsertUserRow, error)
 	UpdateMovie(ctx context.Context, arg UpdateMovieParams) (int, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (int, error)

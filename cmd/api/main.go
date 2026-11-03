@@ -45,6 +45,7 @@ type application struct {
 	logger *slog.Logger
 	movies movies.MovieService
 	users  users.UserService
+	tokens users.TokenService
 	mailer *mailer.Mailer
 	wg     sync.WaitGroup
 }
@@ -92,7 +93,8 @@ func main() {
 		config: cfg,
 		logger: logger,
 		movies: movies.NewMovieService(repo.New(db)),
-		users:  users.NewUserService(repo.New(db)),
+		users:  users.NewUserService(db),
+		tokens: users.NewTokenService(repo.New(db)),
 		mailer: mailer,
 	}
 

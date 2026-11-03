@@ -38,3 +38,20 @@ UPDATE users
 SET name = $1, email = $2, password_hash = $3, activated = $4, version = version + 1
 WHERE id = $5 AND version = $6
 RETURNING version;
+
+-- name: GetUserForToken :one
+SELECT users.id, users.created_at, users.name, users.email, users.password_hash, users.activated, users.version
+FROM users
+INNER JOIN tokens
+ON users.id = tokens.user_id
+WHERE tokens.hash = $1
+AND tokens.scope = $2
+AND tokens.expiry > $3;
+
+-- name: InsertToken :exec
+INSERT INTO tokens (hash, user_id, expiry, scope)
+VALUES ($1, $2, $3, $4);
+
+-- name: DeleteAllTokensForUser :exec
+DELETE FROM tokens
+WHERE scope = $1 AND user_id = $2;

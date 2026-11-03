@@ -156,8 +156,8 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 	err = app.movies.Update(movie)
 	if err != nil {
-		if errors.Is(err, movies.ErrRecordNotFound) {
-			app.notFoundResponse(w, r)
+		if errors.Is(err, movies.ErrEditConflict) {
+			app.editConflictResponse(w, r)
 			return
 		}
 		app.serverErrorResponse(w, r, err)
