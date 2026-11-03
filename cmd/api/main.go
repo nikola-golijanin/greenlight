@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	repo "github.com/nikola-golijanin/greenlight/internal/data/sqlc"
+	"github.com/nikola-golijanin/greenlight/internal/mailer"
 	"github.com/nikola-golijanin/greenlight/internal/movies"
 	"github.com/nikola-golijanin/greenlight/internal/users"
 )
@@ -29,6 +31,13 @@ type config struct {
 		window   time.Duration
 		enabled  bool
 	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
+	}
 }
 
 type application struct {
@@ -36,6 +45,8 @@ type application struct {
 	logger *slog.Logger
 	movies movies.MovieService
 	users  users.UserService
+	mailer *mailer.Mailer
+	wg     sync.WaitGroup
 }
 
 func main() {
@@ -52,6 +63,12 @@ func main() {
 	flag.DurationVar(&cfg.limiter.window, "limiter-window", 5*time.Second, "Rate limiter window length")
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
 
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "192.168.1.60", "SMTP host")
+	flag.IntVar(&cfg.smtp.port, "smtp-port", 1025, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "a7420fc0883489", "SMTP username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "e75ffd0a3aa5ec", "SMTP password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.nikolagolijanin.net>", "SMTP sender")
+
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -65,11 +82,18 @@ func main() {
 	defer db.Close()
 	logger.Info("database connection pool established")
 
+	mailer, err := mailer.NewMailer(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
 	app := &application{
 		config: cfg,
 		logger: logger,
 		movies: movies.NewMovieService(repo.New(db)),
 		users:  users.NewUserService(repo.New(db)),
+		mailer: mailer,
 	}
 
 	err = app.serve()
