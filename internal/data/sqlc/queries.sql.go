@@ -26,14 +26,17 @@ func (q *Queries) DeleteAllTokensForUser(ctx context.Context, arg DeleteAllToken
 	return err
 }
 
-const deleteMovie = `-- name: DeleteMovie :exec
+const deleteMovie = `-- name: DeleteMovie :execrows
 DELETE from movies
 WHERE id = $1
 `
 
-func (q *Queries) DeleteMovie(ctx context.Context, id int) error {
-	_, err := q.db.Exec(ctx, deleteMovie, id)
-	return err
+func (q *Queries) DeleteMovie(ctx context.Context, id int) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteMovie, id)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const getAllMovies = `-- name: GetAllMovies :many

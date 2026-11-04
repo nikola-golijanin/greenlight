@@ -10,7 +10,7 @@ import (
 
 type Querier interface {
 	DeleteAllTokensForUser(ctx context.Context, arg DeleteAllTokensForUserParams) error
-	DeleteMovie(ctx context.Context, id int) error
+	DeleteMovie(ctx context.Context, id int) (int64, error)
 	GetAllMovies(ctx context.Context) ([]Movie, error)
 	GetMovieById(ctx context.Context, id int) (Movie, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)

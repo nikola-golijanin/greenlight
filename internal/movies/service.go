@@ -100,7 +100,7 @@ func (m MovieService) Update(movie *Movie) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := m.repo.UpdateMovie(ctx, repo.UpdateMovieParams{
+	newVersion, err := m.repo.UpdateMovie(ctx, repo.UpdateMovieParams{
 		ID:      movie.ID,
 		Title:   movie.Title,
 		Year:    movie.Year,
@@ -108,24 +108,27 @@ func (m MovieService) Update(movie *Movie) error {
 		Genres:  movie.Genres,
 		Version: movie.Version,
 	})
-
-	switch {
-	case errors.Is(err, pgx.ErrNoRows):
-		return ErrEditConflict
-	default:
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrEditConflict
+		}
 		return err
 	}
+
+	movie.Version = newVersion
+	return nil
 }
 
 func (m MovieService) Delete(id int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.repo.DeleteMovie(ctx, id)
-	switch {
-	case errors.Is(err, pgx.ErrNoRows):
-		return ErrRecordNotFound
-	default:
+	n, err := m.repo.DeleteMovie(ctx, id)
+	if err != nil {
 		return err
 	}
+	if n == 0 {
+		return ErrRecordNotFound
+	}
+	return nil
 }

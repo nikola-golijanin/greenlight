@@ -34,8 +34,16 @@ func (app *application) getMoviesHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	mvs, _ := app.movies.GetAll(input.Title, input.Genres, input.Filters)
-	app.writeJSON(w, http.StatusOK, mvs, nil)
+	mvs, err := app.movies.GetAll(input.Title, input.Genres, input.Filters)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, mvs, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
 
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +103,7 @@ func (app *application) getMovieByIdHandler(w http.ResponseWriter, r *http.Reque
 			app.notFoundResponse(w, r)
 			return
 		}
-		app.badRequestResponse(w, r, err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
@@ -119,7 +127,7 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 			app.notFoundResponse(w, r)
 			return
 		}
-		app.badRequestResponse(w, r, err)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
@@ -178,18 +186,12 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	movie, err := app.movies.GetById(id)
+	err = app.movies.Delete(id)
 	if err != nil {
 		if errors.Is(err, movies.ErrRecordNotFound) {
 			app.notFoundResponse(w, r)
 			return
 		}
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
-	err = app.movies.Delete(movie.ID)
-	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
