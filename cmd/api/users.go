@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/nikola-golijanin/greenlight/internal/users"
 	"github.com/nikola-golijanin/greenlight/internal/validator"
@@ -41,7 +40,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = app.users.Insert(user)
+	token, err := app.users.Register(user)
 	if err != nil {
 		switch {
 		case errors.Is(err, users.ErrDuplicateEmail):
@@ -52,12 +51,8 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
-
-	token, err := app.tokens.New(user.ID, 3*24*time.Hour, users.ScopeActivation)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
+	
+	// app.logger.Info("Token:","token",token.Plaintext)
 
 	app.background(func() {
 		data := map[string]any{

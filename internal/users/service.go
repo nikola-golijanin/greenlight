@@ -19,6 +19,8 @@ var (
 	ErrEditConflict   = errors.New("edit conflict")
 )
 
+const activationTokenTTL = 3 * 24 * time.Hour
+
 type UserService struct {
 	repos *repo.Queries
 	db    *pgxpool.Pool
@@ -28,11 +30,18 @@ func NewUserService(db *pgxpool.Pool) UserService {
 	return UserService{repos: repo.New(db), db: db}
 }
 
-func (u UserService) Insert(user *User) error {
+func (u UserService) Register(user *User) (*Token, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	usr, err := u.repos.InsertUser(ctx, repo.InsertUserParams{
+	tx, err := u.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+	qtx := u.repos.WithTx(tx)
+
+	usr, err := qtx.InsertUser(ctx, repo.InsertUserParams{
 		Name:         user.Name,
 		Email:        user.Email,
 		PasswordHash: user.Password.hash,
@@ -43,15 +52,32 @@ func (u UserService) Insert(user *User) error {
 		if errors.As(err, &pgErr) &&
 			pgErr.Code == "23505" &&
 			pgErr.ConstraintName == "users_email_key" {
-			return ErrDuplicateEmail
+			return nil, ErrDuplicateEmail
 		}
 
-		return err
+		return nil, err
 	}
+
+	token := generateToken(usr.ID, activationTokenTTL, ScopeActivation)
+	if err := qtx.InsertToken(ctx, repo.InsertTokenParams{
+		Hash:   token.Hash,
+		UserID: token.UserID,
+		Expiry: pgtype.Timestamptz{Time: token.Expiry, Valid: true},
+		Scope:  token.Scope,
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
 	user.ID = usr.ID
 	user.CreatedAt = usr.CreatedAt.Time
 	user.Version = usr.Version
-	return nil
+	user.Activated = false
+
+	return token, nil
 }
 
 func (u UserService) GetUserByEmail(email string) (*User, error) {
@@ -144,8 +170,8 @@ func (u UserService) Activate(tokenPlaintext string) (*User, error) {
 		return nil, err
 	}
 	defer tx.Rollback(ctx)
-
 	qtx := u.repos.WithTx(tx)
+
 	usr, err := qtx.GetUserForToken(ctx, repo.GetUserForTokenParams{
 		Hash:   hash[:],
 		Scope:  ScopeActivation,
