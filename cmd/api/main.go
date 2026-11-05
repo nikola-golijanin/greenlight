@@ -89,12 +89,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	repository := repo.New(db)
 	app := &application{
 		config: cfg,
 		logger: logger,
-		movies: movies.NewMovieService(repo.New(db)),
-		users:  users.NewUserService(db),
-		tokens: users.NewTokenService(repo.New(db)),
+		movies: movies.NewMovieService(repository),
+		users:  users.NewUserService(repository, db),
+		tokens: users.NewTokenService(repository),
 		mailer: mailer,
 	}
 

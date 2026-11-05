@@ -22,12 +22,12 @@ var (
 const activationTokenTTL = 3 * 24 * time.Hour
 
 type UserService struct {
-	repos *repo.Queries
-	db    *pgxpool.Pool
+	repository *repo.Queries
+	db         *pgxpool.Pool
 }
 
-func NewUserService(db *pgxpool.Pool) UserService {
-	return UserService{repos: repo.New(db), db: db}
+func NewUserService(repository *repo.Queries, db *pgxpool.Pool) UserService {
+	return UserService{repository: repository, db: db}
 }
 
 func (u UserService) Register(user *User) (*Token, error) {
@@ -39,7 +39,7 @@ func (u UserService) Register(user *User) (*Token, error) {
 		return nil, err
 	}
 	defer tx.Rollback(ctx)
-	qtx := u.repos.WithTx(tx)
+	qtx := u.repository.WithTx(tx)
 
 	usr, err := qtx.InsertUser(ctx, repo.InsertUserParams{
 		Name:         user.Name,
@@ -91,7 +91,7 @@ func (u UserService) Activate(tokenPlaintext string) (*User, error) {
 		return nil, err
 	}
 	defer tx.Rollback(ctx)
-	qtx := u.repos.WithTx(tx)
+	qtx := u.repository.WithTx(tx)
 
 	usr, err := qtx.GetUserForToken(ctx, repo.GetUserForTokenParams{
 		Hash:   hash[:],

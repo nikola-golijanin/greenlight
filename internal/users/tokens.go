@@ -43,11 +43,11 @@ func ValidateTokenPlaintext(v *validator.Validator, tokenPlaintext string) {
 }
 
 type TokenService struct {
-	repo repo.Querier
+	repository repo.Querier
 }
 
-func NewTokenService(repo repo.Querier) TokenService {
-	return TokenService{repo: repo}
+func NewTokenService(repository repo.Querier) TokenService {
+	return TokenService{repository: repository}
 }
 
 func (t TokenService) New(userID int, ttl time.Duration, scope string) (*Token, error) {
@@ -61,7 +61,7 @@ func (t TokenService) Insert(token *Token) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	return t.repo.InsertToken(ctx, repo.InsertTokenParams{
+	return t.repository.InsertToken(ctx, repo.InsertTokenParams{
 		Hash:   token.Hash,
 		UserID: token.UserID,
 		Expiry: pgtype.Timestamptz{Time: token.Expiry, Valid: true},
@@ -73,5 +73,5 @@ func (t TokenService) DeleteAllTokensForUser(scope string, userID int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	return t.repo.DeleteAllTokensForUser(ctx, repo.DeleteAllTokensForUserParams{Scope: scope, UserID: userID})
+	return t.repository.DeleteAllTokensForUser(ctx, repo.DeleteAllTokensForUserParams{Scope: scope, UserID: userID})
 }

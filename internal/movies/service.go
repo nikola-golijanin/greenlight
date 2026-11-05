@@ -16,12 +16,12 @@ var (
 )
 
 type MovieService struct {
-	repo repo.Querier
+	repository repo.Querier
 }
 
-func NewMovieService(repo repo.Querier) MovieService {
+func NewMovieService(repository repo.Querier) MovieService {
 	return MovieService{
-		repo: repo,
+		repository: repository,
 	}
 }
 
@@ -29,7 +29,7 @@ func (m MovieService) GetAll(title string, genres []string, filters data.Filters
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	movies, err := m.repo.GetAllMovies(ctx)
+	movies, err := m.repository.GetAllMovies(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func (m MovieService) Insert(movie *Movie) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	mv, err := m.repo.InsertMovie(ctx, repo.InsertMovieParams{
+	mv, err := m.repository.InsertMovie(ctx, repo.InsertMovieParams{
 		Title:   movie.Title,
 		Year:    movie.Year,
 		Runtime: int(movie.Runtime),
@@ -73,7 +73,7 @@ func (m MovieService) GetById(id int) (*Movie, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	mv, err := m.repo.GetMovieById(ctx, id)
+	mv, err := m.repository.GetMovieById(ctx, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, pgx.ErrNoRows):
@@ -100,7 +100,7 @@ func (m MovieService) Update(movie *Movie) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	newVersion, err := m.repo.UpdateMovie(ctx, repo.UpdateMovieParams{
+	newVersion, err := m.repository.UpdateMovie(ctx, repo.UpdateMovieParams{
 		ID:      movie.ID,
 		Title:   movie.Title,
 		Year:    movie.Year,
@@ -123,7 +123,7 @@ func (m MovieService) Delete(id int) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	n, err := m.repo.DeleteMovie(ctx, id)
+	n, err := m.repository.DeleteMovie(ctx, id)
 	if err != nil {
 		return err
 	}
