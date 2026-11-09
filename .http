@@ -43,14 +43,25 @@ GET http://localhost:4000/v1/healthcheck
 POST http://localhost:4000/v1/users
 Content-Type: application/json
 
-{"name":"Nikola","email":"nikola@test.com","password":"nikola.12345"}
+{"name":"Nikola","email":"ng@test.com","password":"nikola.12345"}
 
 ### Activate user 
 PUT http://localhost:4000/v1/users/activated
 Content-Type: application/json
 
-{"token": "6E3OWDAYDIJJA2LME645SFXT3C"}
+{"token": "HFJOH5WH3Z7OUHVXHBV4MGDMA6"}
 
+### Login
+POST http://localhost:4000/v1/tokens/authentication
+Content-Type: application/json
 
+{
+    "email":"ng@test.com",
+    "password":"nikola.12345"
+}
+
+### healthcheck with authorization header
+GET http://localhost:4000/v1/healthcheck
+Authorization: Bearer 3AQUMT6IWXLK2CFPCLIWPYMUHX
 
 

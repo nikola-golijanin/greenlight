@@ -14,9 +14,10 @@ import (
 )
 
 var (
-	ErrDuplicateEmail = errors.New("duplicate email")
-	ErrRecordNotFound = errors.New("record not found")
-	ErrEditConflict   = errors.New("edit conflict")
+	ErrDuplicateEmail  = errors.New("duplicate email")
+	ErrRecordNotFound  = errors.New("record not found")
+	ErrInvalidPassword = errors.New("invalid password")
+	ErrEditConflict    = errors.New("edit conflict")
 )
 
 const activationTokenTTL = 3 * 24 * time.Hour
@@ -143,4 +144,36 @@ func (u UserService) Activate(tokenPlaintext string) (*User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (u UserService) GetUserForToken(scope string, tokenPlaintext string) (*User, error) {
+	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	usr, err := u.repository.GetUserForToken(ctx, repo.GetUserForTokenParams{
+		Hash:   tokenHash[:],
+		Scope:  scope,
+		Expiry: pgtype.Timestamptz{Time: time.Now(), Valid: true},
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, pgx.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	user := &User{
+		ID:        usr.ID,
+		CreatedAt: usr.CreatedAt.Time,
+		Name:      usr.Name,
+		Email:     usr.Email,
+		Password:  password{nil, usr.PasswordHash},
+		Activated: usr.Activated,
+		Version:   usr.Version,
+	}
+
+	return user, err
 }

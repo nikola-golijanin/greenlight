@@ -13,19 +13,23 @@ func (app *application) routes() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(app.RateLimit)
+	r.Use(app.Authenticate)
 
 	r.NotFound(app.notFoundResponse)
 	r.MethodNotAllowed(app.methodNotAllowedResponse)
 
 	r.Get("/v1/healthcheck", app.healthcheckHandler)
-	
+
 	r.Get("/v1/movies", app.getMoviesHandler)
 	r.Post("/v1/movies", app.createMovieHandler)
 	r.Get("/v1/movies/{id}", app.getMovieByIdHandler)
 	r.Patch("/v1/movies/{id}", app.updateMovieHandler)
 	r.Delete("/v1/movies/{id}", app.deleteMovieHandler)
 
-	r.Post("/v1/users",app.registerUserHandler)
-	r.Put("/v1/users/activated",app.activateUserHandler)
+	r.Post("/v1/users", app.registerUserHandler)
+	r.Put("/v1/users/activated", app.activateUserHandler)
+
+	r.Post("/v1/tokens/authentication", app.createAuthenticationTokenHandler)
+
 	return r
 }

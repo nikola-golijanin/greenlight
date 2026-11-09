@@ -4,23 +4,26 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	repo "github.com/nikola-golijanin/greenlight/internal/data/sqlc"
 	"github.com/nikola-golijanin/greenlight/internal/validator"
 )
 
 const (
-	ScopeActivation = "activation"
+	ScopeActivation     = "activation"
+	ScopeAuthentication = "authentication"
 )
 
 type Token struct {
-	Plaintext string
-	Hash      []byte
-	UserID    int
-	Expiry    time.Time
-	Scope     string
+	Plaintext string    `json:"token"`
+	Hash      []byte    `json:"-"`
+	UserID    int       `json:"-"`
+	Expiry    time.Time `json:"expiry"`
+	Scope     string    `json:"-"`
 }
 
 func generateToken(userID int, ttl time.Duration, scope string) *Token {
@@ -74,4 +77,35 @@ func (t TokenService) DeleteAllTokensForUser(scope string, userID int) error {
 	defer cancel()
 
 	return t.repository.DeleteAllTokensForUser(ctx, repo.DeleteAllTokensForUserParams{Scope: scope, UserID: userID})
+}
+
+func (u TokenService) Login(email, passwordPlaintext string) (*Token, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	usr, err := u.repository.GetUserByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrRecordNotFound
+		}
+		return nil, err
+	}
+
+	pw := password{nil, usr.PasswordHash}
+
+	match, err := pw.Matches(passwordPlaintext)
+	if err != nil {
+		return nil, err
+	}
+
+	if !match {
+		return nil, ErrInvalidPassword
+	}
+
+	token, err := u.New(usr.ID, 24*time.Hour, ScopeAuthentication)
+	if err != nil {
+		return nil, nil
+	}
+
+	return token, nil
 }
