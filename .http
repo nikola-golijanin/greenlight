@@ -1,37 +1,43 @@
 ### Get movies
 GET http://localhost:4000/v1/movies?title=godfather&genres=crime,drama&page=1&page_size=5&sort=year
+Authorization: Bearer Y3CGMZWVKQ6YPYSQPMXUHYL7KM
 
 ### Create movie 
 POST http://localhost:4000/v1/movies
 Content-Type: application/json
+Authorization: Bearer Y3CGMZWVKQ6YPYSQPMXUHYL7KM
 
 {"title":"Moana","year":2016,"runtime":"107 mins","genres":["animation","adventure"]}
 
 ### Create movie - invalid request
 POST http://localhost:4000/v1/movies
 Content-Type: application/json
+Authorization: Bearer JRF6A3WTTVASWEOLGESTWT7HQC
 
 {"title":"","year": 2016,"runtime":"107 mins","genres":["animation","adventure"]}
 
 ### Get movie 
-GET http://localhost:4000/v1/movies/111
-
+GET http://localhost:4000/v1/movies/3
+Authorization: Bearer 2UQCIILZNOETKWVTAQY5KYRF53
 
 ### Update movie
-PATCH http://localhost:4000/v1/movies/111
+PATCH http://localhost:4000/v1/movies/40
 Content-Type: application/json
+Authorization: Bearer 3WFHQNP6YXL5J3XHRNSQE64STJ
 
 {"title":"Movie1","year": 2000,"runtime":"107 mins","genres":["animation","adventure"]}
 
 ### Update movie partially
 PATCH http://localhost:4000/v1/movies/61
 Content-Type: application/json
+Authorization: Bearer 3AQUMT6IWXLK2CFPCLIWPYMUHX
 
 {"title":"Movie2","year": 2005}
 
 
 ### Delete movie
 DELETE http://localhost:4000/v1/movies/241
+Authorization: Bearer 3AQUMT6IWXLK2CFPCLIWPYMUHX
 
 ### healthcheck
 GET http://localhost:4000/v1/healthcheck
@@ -43,25 +49,31 @@ GET http://localhost:4000/v1/healthcheck
 POST http://localhost:4000/v1/users
 Content-Type: application/json
 
-{"name":"Nikola","email":"ng@test.com","password":"nikola.12345"}
+{"name":"Nikola","email":"grace@example.com","password":"nikola.12345"}
 
 ### Activate user 
 PUT http://localhost:4000/v1/users/activated
 Content-Type: application/json
 
-{"token": "HFJOH5WH3Z7OUHVXHBV4MGDMA6"}
+{"token": "C2O3LFYS5COLU4UEL2BXCA7YVT"}
 
 ### Login
 POST http://localhost:4000/v1/tokens/authentication
 Content-Type: application/json
 
 {
-    "email":"ng@test.com",
+    "email":"grace@example.com",
     "password":"nikola.12345"
 }
 
 ### healthcheck with authorization header
 GET http://localhost:4000/v1/healthcheck
-Authorization: Bearer 3AQUMT6IWXLK2CFPCLIWPYMUHX
 
+
+
+### Create user 
+POST http://localhost:4000/v1/users
+Content-Type: application/json
+
+{"name":"Nikola","email":"faith@example.com","password":"nikola.12345"}
 

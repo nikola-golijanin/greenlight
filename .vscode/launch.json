@@ -18,7 +18,8 @@
                 "--db-max-idle-time=2h30m",
                 "--limiter-requests=2",
                 "--limiter-window=5s",
-                "--limiter-enabled=false"
+                "--limiter-enabled=false",
+                "--auth-enabled=true"
             ],
         },
         {
@@ -35,7 +36,8 @@
                 "--db-max-idle-time=2h30m",
                 "--limiter-requests=2",
                 "--limiter-window=5s",
-                "--limiter-enabled=false"
+                "--limiter-enabled=false",
+                "--auth-enabled=true"
             ],
         }
     ]

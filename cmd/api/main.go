@@ -13,6 +13,7 @@ import (
 	repo "github.com/nikola-golijanin/greenlight/internal/data/sqlc"
 	"github.com/nikola-golijanin/greenlight/internal/mailer"
 	"github.com/nikola-golijanin/greenlight/internal/movies"
+	"github.com/nikola-golijanin/greenlight/internal/permissions"
 	"github.com/nikola-golijanin/greenlight/internal/users"
 )
 
@@ -38,16 +39,20 @@ type config struct {
 		password string
 		sender   string
 	}
+	auth struct {
+		enabled bool
+	}
 }
 
 type application struct {
-	config config
-	logger *slog.Logger
-	movies movies.MovieService
-	users  users.UserService
-	tokens users.TokenService
-	mailer *mailer.Mailer
-	wg     sync.WaitGroup
+	config      config
+	logger      *slog.Logger
+	movies      movies.MovieService
+	users       users.UserService
+	tokens      users.TokenService
+	permissions permissions.PermissionService
+	mailer      *mailer.Mailer
+	wg          sync.WaitGroup
 }
 
 func main() {
@@ -70,6 +75,8 @@ func main() {
 	flag.StringVar(&cfg.smtp.password, "smtp-password", "e75ffd0a3aa5ec", "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.nikolagolijanin.net>", "SMTP sender")
 
+	flag.BoolVar(&cfg.auth.enabled, "auth-enabled", true, "Enable authentication and authorisation")
+
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -91,12 +98,13 @@ func main() {
 
 	repository := repo.New(db)
 	app := &application{
-		config: cfg,
-		logger: logger,
-		movies: movies.NewMovieService(repository),
-		users:  users.NewUserService(repository, db),
-		tokens: users.NewTokenService(repository),
-		mailer: mailer,
+		config:      cfg,
+		logger:      logger,
+		movies:      movies.NewMovieService(repository),
+		users:       users.NewUserService(repository, db),
+		tokens:      users.NewTokenService(repository),
+		permissions: permissions.NewPermissionsService(repository, db),
+		mailer:      mailer,
 	}
 
 	err = app.serve()

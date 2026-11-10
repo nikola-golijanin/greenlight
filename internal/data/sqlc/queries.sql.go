@@ -11,6 +11,23 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addPermissionForUser = `-- name: AddPermissionForUser :exec
+INSERT INTO users_permissions (user_id, permission_id)
+SELECT $1::bigint, permissions.id
+FROM permissions
+WHERE permissions.code = ANY($2::text[])
+`
+
+type AddPermissionForUserParams struct {
+	UserID int      `json:"user_id"`
+	Codes  []string `json:"codes"`
+}
+
+func (q *Queries) AddPermissionForUser(ctx context.Context, arg AddPermissionForUserParams) error {
+	_, err := q.db.Exec(ctx, addPermissionForUser, arg.UserID, arg.Codes)
+	return err
+}
+
 const deleteAllTokensForUser = `-- name: DeleteAllTokensForUser :exec
 DELETE FROM tokens
 WHERE scope = $1 AND user_id = $2
@@ -144,6 +161,34 @@ func (q *Queries) GetUserForToken(ctx context.Context, arg GetUserForTokenParams
 		&i.Version,
 	)
 	return i, err
+}
+
+const getUsersPermissions = `-- name: GetUsersPermissions :many
+SELECT permissions.code 
+FROM permissions 
+INNER JOIN users_permissions ON users_permissions.permission_id = permissions.id
+INNER JOIN users ON users_permissions.user_id = users.id
+WHERE users.id = $1
+`
+
+func (q *Queries) GetUsersPermissions(ctx context.Context, id int) ([]string, error) {
+	rows, err := q.db.Query(ctx, getUsersPermissions, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var code string
+		if err := rows.Scan(&code); err != nil {
+			return nil, err
+		}
+		items = append(items, code)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const insertMovie = `-- name: InsertMovie :one

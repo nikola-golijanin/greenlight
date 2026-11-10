@@ -59,6 +59,11 @@ func (u UserService) Register(user *User) (*Token, error) {
 		return nil, err
 	}
 
+	err = qtx.AddPermissionForUser(ctx, repo.AddPermissionForUserParams{UserID: usr.ID, Codes: []string{"movies:read"}})
+	if err != nil {
+		return nil, err
+	}
+
 	token := generateToken(usr.ID, activationTokenTTL, ScopeActivation)
 	if err := qtx.InsertToken(ctx, repo.InsertTokenParams{
 		Hash:   token.Hash,

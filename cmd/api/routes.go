@@ -20,14 +20,23 @@ func (app *application) routes() http.Handler {
 
 	r.Get("/v1/healthcheck", app.healthcheckHandler)
 
-	r.Get("/v1/movies", app.getMoviesHandler)
-	r.Post("/v1/movies", app.createMovieHandler)
-	r.Get("/v1/movies/{id}", app.getMovieByIdHandler)
-	r.Patch("/v1/movies/{id}", app.updateMovieHandler)
-	r.Delete("/v1/movies/{id}", app.deleteMovieHandler)
+	r.Group(func(r chi.Router) {
+		r.Use(app.requireActivatedUser)
+		// movies
+		r.Route("/v1/movies", func(r chi.Router) {
+			r.Get("/", app.requirePermission("movies:read", app.getMoviesHandler))
+			r.Post("/", app.requirePermission("movies:write", app.createMovieHandler))
+			r.Get("/{id}", app.requirePermission("movies:read", app.getMovieByIdHandler))
+			r.Patch("/{id}", app.requirePermission("movies:write", app.updateMovieHandler))
+			r.Delete("/{id}", app.requirePermission("movies:write", app.deleteMovieHandler))
+		})
+	})
 
-	r.Post("/v1/users", app.registerUserHandler)
-	r.Put("/v1/users/activated", app.activateUserHandler)
+	// users
+	r.Route("/v1/users", func(r chi.Router) {
+		r.Post("/", app.registerUserHandler)
+		r.Put("/activated", app.activateUserHandler)
+	})
 
 	r.Post("/v1/tokens/authentication", app.createAuthenticationTokenHandler)
 

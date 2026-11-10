@@ -18,6 +18,11 @@ type Movie struct {
 	Version   int                `json:"version"`
 }
 
+type Permission struct {
+	ID   int    `json:"id"`
+	Code string `json:"code"`
+}
+
 type Token struct {
 	Hash   []byte             `json:"hash"`
 	UserID int                `json:"user_id"`
@@ -33,4 +38,9 @@ type User struct {
 	PasswordHash []byte             `json:"password_hash"`
 	Activated    bool               `json:"activated"`
 	Version      int                `json:"version"`
+}
+
+type UsersPermission struct {
+	UserID       int `json:"user_id"`
+	PermissionID int `json:"permission_id"`
 }

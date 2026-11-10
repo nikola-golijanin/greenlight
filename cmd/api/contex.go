@@ -11,7 +11,7 @@ type contextKey string
 
 const authenticatedUserContextKey = contextKey("authenticatedUser")
 
-func (app *application) contextSetAuthUser(r *http.Request, user users.User) *http.Request {
+func (app *application) contextSetAuthUser(r *http.Request, user *users.User) *http.Request {
 	ctx := context.WithValue(r.Context(), authenticatedUserContextKey, user)
 	return r.WithContext(ctx)
 }

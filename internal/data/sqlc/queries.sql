@@ -55,3 +55,16 @@ VALUES ($1, $2, $3, $4);
 -- name: DeleteAllTokensForUser :exec
 DELETE FROM tokens
 WHERE scope = $1 AND user_id = $2;
+
+-- name: GetUsersPermissions :many
+SELECT permissions.code 
+FROM permissions 
+INNER JOIN users_permissions ON users_permissions.permission_id = permissions.id
+INNER JOIN users ON users_permissions.user_id = users.id
+WHERE users.id = $1;
+
+-- name: AddPermissionForUser :exec
+INSERT INTO users_permissions (user_id, permission_id)
+SELECT sqlc.arg(user_id)::bigint, permissions.id
+FROM permissions
+WHERE permissions.code = ANY(sqlc.arg(codes)::text[]);

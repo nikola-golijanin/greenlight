@@ -29,9 +29,9 @@ func clientIPKey(r *http.Request) (string, error) {
 }
 
 func (app *application) Authenticate(next http.Handler) http.Handler {
-	// if !app.config.limiter.enabled {
-		// return next
-	// }
+	if !app.config.auth.enabled {
+		return next
+	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "Authorization")
@@ -66,7 +66,59 @@ func (app *application) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		r = app.contextSetAuthUser(r, *user)
+		r = app.contextSetAuthUser(r, user)
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) requireActivatedUser(next http.Handler) http.Handler {
+	if !app.config.auth.enabled {
+		return next
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authenticatedUser, found := app.contextGetAuthUser(r)
+		if !found {
+			app.authenticationRequiredResponse(w, r)
+			return
+		}
+
+		if !authenticatedUser.Activated {
+			app.inactiveAccountResponse(w, r)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) requirePermission(code string, next http.HandlerFunc) http.HandlerFunc {
+	if !app.config.auth.enabled {
+		return next
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authenticatedUser, found := app.contextGetAuthUser(r)
+
+		if !found {
+			app.authenticationRequiredResponse(w, r)
+			return
+		}
+
+		if !authenticatedUser.Activated {
+			app.inactiveAccountResponse(w, r)
+			return
+		}
+
+		permissions, err := app.permissions.GetUsersPermissions(authenticatedUser.ID)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+
+		if !permissions.Contains(code) {
+			app.missingPermissionResponse(w, r)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }
