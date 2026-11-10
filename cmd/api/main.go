@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -42,6 +43,9 @@ type config struct {
 	auth struct {
 		enabled bool
 	}
+	cors struct {
+		trustedOrigins []string
+	}
 }
 
 type application struct {
@@ -76,6 +80,11 @@ func main() {
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.nikolagolijanin.net>", "SMTP sender")
 
 	flag.BoolVar(&cfg.auth.enabled, "auth-enabled", true, "Enable authentication and authorisation")
+
+	flag.Func("cors-trusted-origins", "Trusted CORS origins (space separated)", func(s string) error {
+		cfg.cors.trustedOrigins = strings.Fields(s)
+		return nil
+	})
 
 	flag.Parse()
 

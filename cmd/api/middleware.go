@@ -71,7 +71,7 @@ func (app *application) Authenticate(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) requireActivatedUser(next http.Handler) http.Handler {
+func (app *application) RequireActivatedUser(next http.Handler) http.Handler {
 	if !app.config.auth.enabled {
 		return next
 	}
@@ -91,7 +91,7 @@ func (app *application) requireActivatedUser(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) requirePermission(code string, next http.HandlerFunc) http.HandlerFunc {
+func (app *application) RequirePermission(code string, next http.HandlerFunc) http.HandlerFunc {
 	if !app.config.auth.enabled {
 		return next
 	}

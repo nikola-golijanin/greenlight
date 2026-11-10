@@ -19,7 +19,8 @@
                 "--limiter-requests=2",
                 "--limiter-window=5s",
                 "--limiter-enabled=false",
-                "--auth-enabled=true"
+                "--auth-enabled=true",
+                "--cors-trusted-origins=http://localhost:9000 http://localhost:9001"
             ],
         },
         {
@@ -37,7 +38,8 @@
                 "--limiter-requests=2",
                 "--limiter-window=5s",
                 "--limiter-enabled=false",
-                "--auth-enabled=true"
+                "--auth-enabled=true",
+                "--cors-trusted-origins=http://localhost:9000 http://localhost:9001"
             ],
         }
     ]

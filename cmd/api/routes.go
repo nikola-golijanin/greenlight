@@ -5,12 +5,21 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 )
 
 func (app *application) routes() http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   app.config.cors.trustedOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
 	r.Use(middleware.Recoverer)
 	r.Use(app.RateLimit)
 	r.Use(app.Authenticate)
@@ -21,14 +30,14 @@ func (app *application) routes() http.Handler {
 	r.Get("/v1/healthcheck", app.healthcheckHandler)
 
 	r.Group(func(r chi.Router) {
-		r.Use(app.requireActivatedUser)
+		r.Use(app.RequireActivatedUser)
 		// movies
 		r.Route("/v1/movies", func(r chi.Router) {
-			r.Get("/", app.requirePermission("movies:read", app.getMoviesHandler))
-			r.Post("/", app.requirePermission("movies:write", app.createMovieHandler))
-			r.Get("/{id}", app.requirePermission("movies:read", app.getMovieByIdHandler))
-			r.Patch("/{id}", app.requirePermission("movies:write", app.updateMovieHandler))
-			r.Delete("/{id}", app.requirePermission("movies:write", app.deleteMovieHandler))
+			r.Get("/", app.RequirePermission("movies:read", app.getMoviesHandler))
+			r.Post("/", app.RequirePermission("movies:write", app.createMovieHandler))
+			r.Get("/{id}", app.RequirePermission("movies:read", app.getMovieByIdHandler))
+			r.Patch("/{id}", app.RequirePermission("movies:write", app.updateMovieHandler))
+			r.Delete("/{id}", app.RequirePermission("movies:write", app.deleteMovieHandler))
 		})
 	})
 
