@@ -104,6 +104,8 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
+	
+	publishMetrics(db)
 
 	repository := repo.New(db)
 	app := &application{
@@ -128,6 +130,10 @@ func openDB(cfg config) (*pgxpool.Pool, error) {
 	defer cancel()
 
 	dbCfg, err := pgxpool.ParseConfig(cfg.db.dsn)
+	if err != nil {
+		return nil, fmt.Errorf("parse dsn: %w", err)
+	}
+
 	dbCfg.MaxConns = int32(cfg.db.maxOpenConns)
 	dbCfg.MaxConnIdleTime = cfg.db.maxIdleTime
 

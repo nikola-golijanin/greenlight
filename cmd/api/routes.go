@@ -1,6 +1,7 @@
 package main
 
 import (
+	"expvar"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -11,6 +12,7 @@ import (
 func (app *application) routes() http.Handler {
 	r := chi.NewRouter()
 
+	r.Use(app.RecordRequestMetrics)
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   app.config.cors.trustedOrigins,
@@ -28,6 +30,7 @@ func (app *application) routes() http.Handler {
 	r.MethodNotAllowed(app.methodNotAllowedResponse)
 
 	r.Get("/v1/healthcheck", app.healthcheckHandler)
+	r.Method("GET", "/debug/vars", expvar.Handler())
 
 	r.Group(func(r chi.Router) {
 		r.Use(app.RequireActivatedUser)
