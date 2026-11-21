@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -18,7 +19,7 @@ import (
 	"github.com/nikola-golijanin/greenlight/internal/users"
 )
 
-const version = "1.0.0"
+var version = Version()
 
 type config struct {
 	port int
@@ -86,7 +87,14 @@ func main() {
 		return nil
 	})
 
+	displayVersion := flag.Bool("version", false, "Display version and exit")
+
 	flag.Parse()
+
+	if *displayVersion {
+		fmt.Printf("Version:\t%s\n", version)
+		os.Exit(0)
+	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
@@ -149,4 +157,13 @@ func openDB(cfg config) (*pgxpool.Pool, error) {
 	}
 
 	return dbpool, nil
+}
+
+func Version() string {
+	bi, ok := debug.ReadBuildInfo()
+	if ok {
+		return bi.Main.Version
+	}
+
+	return ""
 }
