@@ -53,17 +53,14 @@ func NewTokenService(repository repo.Querier) TokenService {
 	return TokenService{repository: repository}
 }
 
-func (t TokenService) New(userID int, ttl time.Duration, scope string) (*Token, error) {
+func (t TokenService) New(ctx context.Context, userID int, ttl time.Duration, scope string) (*Token, error) {
 	token := generateToken(userID, ttl, scope)
 
-	err := t.Insert(token)
+	err := t.Insert(ctx, token)
 	return token, err
 }
 
-func (t TokenService) Insert(token *Token) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (t TokenService) Insert(ctx context.Context, token *Token) error {
 	return t.repository.InsertToken(ctx, repo.InsertTokenParams{
 		Hash:   token.Hash,
 		UserID: token.UserID,
@@ -72,17 +69,11 @@ func (t TokenService) Insert(token *Token) error {
 	})
 }
 
-func (t TokenService) DeleteAllTokensForUser(scope string, userID int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (t TokenService) DeleteAllTokensForUser(ctx context.Context, scope string, userID int) error {
 	return t.repository.DeleteAllTokensForUser(ctx, repo.DeleteAllTokensForUserParams{Scope: scope, UserID: userID})
 }
 
-func (u TokenService) Login(email, passwordPlaintext string) (*Token, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (u TokenService) Login(ctx context.Context, email, passwordPlaintext string) (*Token, error) {
 	usr, err := u.repository.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -102,7 +93,7 @@ func (u TokenService) Login(email, passwordPlaintext string) (*Token, error) {
 		return nil, ErrInvalidPassword
 	}
 
-	token, err := u.New(usr.ID, 24*time.Hour, ScopeAuthentication)
+	token, err := u.New(ctx, usr.ID, 24*time.Hour, ScopeAuthentication)
 	if err != nil {
 		return nil, nil
 	}

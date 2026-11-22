@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/nikola-golijanin/greenlight/internal/data"
@@ -34,7 +36,10 @@ func (app *application) getMoviesHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	mvs, err := app.movies.GetAll(input.Title, input.Genres, input.Filters)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	mvs, err := app.movies.GetAll(ctx, input.Title, input.Genres, input.Filters)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -74,7 +79,10 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.movies.Insert(movie)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	err = app.movies.Insert(ctx, movie)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -97,7 +105,10 @@ func (app *application) getMovieByIdHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	movie, err := app.movies.GetById(id)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	movie, err := app.movies.GetById(ctx, id)
 	if err != nil {
 		if errors.Is(err, movies.ErrRecordNotFound) {
 			app.notFoundResponse(w, r)
@@ -121,7 +132,10 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	movie, err := app.movies.GetById(id)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	movie, err := app.movies.GetById(ctx, id)
 	if err != nil {
 		if errors.Is(err, movies.ErrRecordNotFound) {
 			app.notFoundResponse(w, r)
@@ -162,7 +176,7 @@ func (app *application) updateMovieHandler(w http.ResponseWriter, r *http.Reques
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-	err = app.movies.Update(movie)
+	err = app.movies.Update(ctx, movie)
 	if err != nil {
 		if errors.Is(err, movies.ErrEditConflict) {
 			app.editConflictResponse(w, r)
@@ -186,7 +200,10 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.movies.Delete(id)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	err = app.movies.Delete(ctx, id)
 	if err != nil {
 		if errors.Is(err, movies.ErrRecordNotFound) {
 			app.notFoundResponse(w, r)

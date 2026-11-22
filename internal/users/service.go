@@ -31,10 +31,7 @@ func NewUserService(repository *repo.Queries, db *pgxpool.Pool) UserService {
 	return UserService{repository: repository, db: db}
 }
 
-func (u UserService) Register(user *User) (*Token, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (u UserService) Register(ctx context.Context, user *User) (*Token, error) {
 	tx, err := u.db.Begin(ctx)
 	if err != nil {
 		return nil, err
@@ -86,10 +83,7 @@ func (u UserService) Register(user *User) (*Token, error) {
 	return token, nil
 }
 
-func (u UserService) Activate(tokenPlaintext string) (*User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (u UserService) Activate(ctx context.Context, tokenPlaintext string) (*User, error) {
 	hash := sha256.Sum256([]byte(tokenPlaintext))
 
 	tx, err := u.db.Begin(ctx)
@@ -151,10 +145,8 @@ func (u UserService) Activate(tokenPlaintext string) (*User, error) {
 	return user, nil
 }
 
-func (u UserService) GetUserForToken(scope string, tokenPlaintext string) (*User, error) {
+func (u UserService) GetUserForToken(ctx context.Context, scope string, tokenPlaintext string) (*User, error) {
 	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
 
 	usr, err := u.repository.GetUserForToken(ctx, repo.GetUserForTokenParams{
 		Hash:   tokenHash[:],

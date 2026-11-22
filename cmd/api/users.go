@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/nikola-golijanin/greenlight/internal/users"
 	"github.com/nikola-golijanin/greenlight/internal/validator"
@@ -40,7 +42,10 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	token, err := app.users.Register(user)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	token, err := app.users.Register(ctx, user)
 	if err != nil {
 		switch {
 		case errors.Is(err, users.ErrDuplicateEmail):
@@ -88,7 +93,10 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	user, err := app.users.Activate(input.TokenPlainText)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	user, err := app.users.Activate(ctx, input.TokenPlainText)
 	if err != nil {
 		switch {
 		case errors.Is(err, users.ErrRecordNotFound):

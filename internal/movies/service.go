@@ -3,7 +3,6 @@ package movies
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/nikola-golijanin/greenlight/internal/data"
@@ -25,10 +24,7 @@ func NewMovieService(repository repo.Querier) MovieService {
 	}
 }
 
-func (m MovieService) GetAll(title string, genres []string, filters data.Filters) ([]*Movie, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (m MovieService) GetAll(ctx context.Context, title string, genres []string, filters data.Filters) ([]*Movie, error) {
 	movies, err := m.repository.GetAllMovies(ctx)
 	if err != nil {
 		return nil, err
@@ -49,10 +45,7 @@ func (m MovieService) GetAll(title string, genres []string, filters data.Filters
 	return mvs, nil
 }
 
-func (m MovieService) Insert(movie *Movie) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (m MovieService) Insert(ctx context.Context, movie *Movie) error {
 	mv, err := m.repository.InsertMovie(ctx, repo.InsertMovieParams{
 		Title:   movie.Title,
 		Year:    movie.Year,
@@ -69,10 +62,7 @@ func (m MovieService) Insert(movie *Movie) error {
 	return nil
 }
 
-func (m MovieService) GetById(id int) (*Movie, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (m MovieService) GetById(ctx context.Context, id int) (*Movie, error) {
 	mv, err := m.repository.GetMovieById(ctx, id)
 	if err != nil {
 		switch {
@@ -96,10 +86,7 @@ func (m MovieService) GetById(id int) (*Movie, error) {
 	return movie, nil
 }
 
-func (m MovieService) Update(movie *Movie) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (m MovieService) Update(ctx context.Context, movie *Movie) error {
 	newVersion, err := m.repository.UpdateMovie(ctx, repo.UpdateMovieParams{
 		ID:      movie.ID,
 		Title:   movie.Title,
@@ -119,10 +106,7 @@ func (m MovieService) Update(movie *Movie) error {
 	return nil
 }
 
-func (m MovieService) Delete(id int) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (m MovieService) Delete(ctx context.Context, id int) error {
 	n, err := m.repository.DeleteMovie(ctx, id)
 	if err != nil {
 		return err

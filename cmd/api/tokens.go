@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/nikola-golijanin/greenlight/internal/users"
 	"github.com/nikola-golijanin/greenlight/internal/validator"
@@ -29,7 +31,10 @@ func (app *application) createAuthenticationTokenHandler(w http.ResponseWriter, 
 		return
 	}
 
-	token, err := app.tokens.Login(input.Email, input.Password)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	token, err := app.tokens.Login(ctx, input.Email, input.Password)
 	if err != nil {
 		switch {
 		case errors.Is(err, users.ErrRecordNotFound):

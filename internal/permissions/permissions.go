@@ -3,7 +3,6 @@ package permissions
 import (
 	"context"
 	"slices"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	repo "github.com/nikola-golijanin/greenlight/internal/data/sqlc"
@@ -24,10 +23,7 @@ func NewPermissionsService(repository *repo.Queries, db *pgxpool.Pool) Permissio
 	return PermissionService{repository: repository, db: db}
 }
 
-func (p PermissionService) GetUsersPermissions(userID int) (Permissions, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
+func (p PermissionService) GetUsersPermissions(ctx context.Context, userID int) (Permissions, error) {
 	ps, err := p.repository.GetUsersPermissions(ctx, userID)
 	if err != nil {
 		return nil, err

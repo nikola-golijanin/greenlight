@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/httprate"
 	"github.com/nikola-golijanin/greenlight/internal/users"
@@ -55,7 +57,10 @@ func (app *application) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		user, err := app.users.GetUserForToken(users.ScopeAuthentication, token)
+		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+		defer cancel()
+
+		user, err := app.users.GetUserForToken(ctx, users.ScopeAuthentication, token)
 		if err != nil {
 			switch {
 			case errors.Is(err, users.ErrRecordNotFound):
@@ -108,7 +113,10 @@ func (app *application) RequirePermission(code string, next http.HandlerFunc) ht
 			return
 		}
 
-		permissions, err := app.permissions.GetUsersPermissions(authenticatedUser.ID)
+		ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+		defer cancel()
+
+		permissions, err := app.permissions.GetUsersPermissions(ctx, authenticatedUser.ID)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return
