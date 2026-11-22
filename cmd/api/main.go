@@ -56,7 +56,7 @@ type application struct {
 	users       users.UserService
 	tokens      users.TokenService
 	permissions permissions.PermissionService
-	mailer      *mailer.Mailer
+	mailer      mailer.MailSender
 	wg          sync.WaitGroup
 }
 

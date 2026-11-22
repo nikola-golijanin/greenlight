@@ -13,6 +13,10 @@ import (
 //go:embed "templates"
 var templateFS embed.FS
 
+type MailSender interface {
+	Send(recipient, templateFile string, data any) error
+}
+
 type Mailer struct {
 	client *mail.Client
 	sender string

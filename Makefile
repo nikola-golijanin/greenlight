@@ -46,6 +46,18 @@ audit:
 	go tool staticcheck ./...
 	go test -race -vet=off ./...
 
+## test/unit: run unit tests (no Docker required)
+test/unit:
+	go test -race ./internal/...
+
+## test/integration: run integration tests (requires Docker)
+test/integration:
+	go test -race -count=1 ./cmd/api/...
+
+## test/all: run unit and integration tests (requires Docker)
+test/all:
+	go test -race -count=1 ./...
+
 # ==================================================================================== #
 # BUILD
 # ==================================================================================== #
