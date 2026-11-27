@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Greenlight.Api/Greenlight.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Greenlight.Api.IntegrationTests/Greenlight.Api.IntegrationTests.csproj" />
+    <Project Path="tests/Greenlight.Api.UnitTests/Greenlight.Api.UnitTests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,19 @@
+# Local observability backend: OpenTelemetry Collector + Tempo (traces) + Prometheus/Mimir (metrics)
+# + Loki (logs) + Grafana, all in one image.  UI: http://localhost:3000 (admin/admin)
+services:
+  lgtm:
+    image: grafana/otel-lgtm:latest
+    container_name: greenlight-lgtm
+    ports:
+      - "3000:3000"   # Grafana
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    volumes:
+      - lgtm-data:/data
+      # Pre-provisioned "Greenlight API" dashboard (Dashboards > Greenlight)
+      - ./observability/grafana/dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/greenlight.yaml:ro
+      - ./observability/grafana/dashboards:/otel-lgtm/greenlight-dashboards:ro
+    restart: unless-stopped
+
+volumes:
+  lgtm-data:

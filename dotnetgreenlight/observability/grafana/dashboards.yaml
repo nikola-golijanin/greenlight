@@ -1,0 +1,10 @@
+# Grafana dashboard provisioning for the grafana/otel-lgtm container (mounted by docker-compose.yml).
+apiVersion: 1
+providers:
+  - name: "Greenlight"
+    folder: "Greenlight"
+    type: file
+    allowUiUpdates: true
+    updateIntervalSeconds: 30
+    options:
+      path: /otel-lgtm/greenlight-dashboards

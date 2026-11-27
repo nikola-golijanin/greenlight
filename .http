@@ -1,11 +1,11 @@
 ### Get movies
 GET http://localhost:4000/v1/movies?title=godfather&genres=crime,drama&page=1&page_size=5&sort=year
-Authorization: Bearer Y3CGMZWVKQ6YPYSQPMXUHYL7KM
+Authorization: Bearer M6ZCCH3YTHPYCGKF4NBNXHQUUU
 
 ### Create movie 
 POST http://localhost:4000/v1/movies
 Content-Type: application/json
-Authorization: Bearer Y3CGMZWVKQ6YPYSQPMXUHYL7KM
+Authorization: Bearer M6ZCCH3YTHPYCGKF4NBNXHQUUU
 
 {"title":"Moana","year":2016,"runtime":"107 mins","genres":["animation","adventure"]}
 
@@ -18,7 +18,7 @@ Authorization: Bearer JRF6A3WTTVASWEOLGESTWT7HQC
 
 ### Get movie 
 GET http://localhost:4000/v1/movies/3
-Authorization: Bearer 2UQCIILZNOETKWVTAQY5KYRF53
+Authorization: Bearer BY3O4BZRQ6BCPDRI2BWTT2GBXC
 
 ### Update movie
 PATCH http://localhost:4000/v1/movies/40
@@ -55,14 +55,15 @@ Content-Type: application/json
 PUT http://localhost:4000/v1/users/activated
 Content-Type: application/json
 
-{"token": "C2O3LFYS5COLU4UEL2BXCA7YVT"}
+{ "token": "IGGV54FKVSHEDEU6HG5S355UDP" }
+
 
 ### Login
 POST http://localhost:4000/v1/tokens/authentication
 Content-Type: application/json
 
 {
-    "email":"grace@example.com",
+    "email":"aaa@example.com",
     "password":"nikola.12345"
 }
 
@@ -75,5 +76,5 @@ GET http://localhost:4000/v1/healthcheck
 POST http://localhost:4000/v1/users
 Content-Type: application/json
 
-{"name":"Nikola","email":"faith@example.com","password":"nikola.12345"}
+{"name":"Nikola","email":"aaa@example.com","password":"nikola.12345"}
 

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "homelab": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5133",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__Greenlight": "Host=192.168.1.60;Port=5432;Database=greenlight;Username=postgres;Password=postgres;SSL Mode=Disable;Maximum Pool Size=50;Connection Idle Lifetime=9000"
+      }
+    },
+    "local": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5133",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__Greenlight": "Host=localhost;Port=5432;Database=greenlight;Username=greenlight;Password=pa55word;Maximum Pool Size=50;Connection Idle Lifetime=9000"
+      }
+    }
+  }
+}

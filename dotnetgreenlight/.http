@@ -1,0 +1,52 @@
+@host = http://localhost:5133
+
+### Healthcheck
+GET {{host}}/v1/healthcheck
+
+### Metrics (expvar equivalent)
+GET {{host}}/debug/vars
+
+### Get movies
+GET {{host}}/v1/movies?title=godfather&genres=crime,drama&page=1&page_size=5&sort=year
+
+### Create movie
+POST {{host}}/v1/movies
+Content-Type: application/json
+
+{"title":"Moana","year":2016,"runtime":"107 mins","genres":["animation","adventure"]}
+
+### Create movie - invalid request
+POST {{host}}/v1/movies
+Content-Type: application/json
+
+{"title":"","year": 2016,"runtime":"107 mins","genres":["animation","adventure"]}
+
+### Get movie
+GET {{host}}/v1/movies/1
+
+### Update movie
+PATCH {{host}}/v1/movies/1
+Content-Type: application/json
+
+{"title":"Movie1","year": 2000,"runtime":"107 mins","genres":["animation","adventure"]}
+
+### Update movie partially
+PATCH {{host}}/v1/movies/1
+Content-Type: application/json
+
+{"title":"Movie2","year": 2005}
+
+### Delete movie
+DELETE {{host}}/v1/movies/1
+
+### Create user (activation token is printed in the API log)
+POST {{host}}/v1/users
+Content-Type: application/json
+
+{"name":"Nikola","email":"nikola@example.com","password":"nikola.12345"}
+
+### Activate user (paste the token from the log)
+PUT {{host}}/v1/users/activated
+Content-Type: application/json
+
+{ "token": "EOD2U6RNIZ6PNRAO6PIAQHN74W" }
